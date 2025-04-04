@@ -1,11 +1,29 @@
 import svg
+import csv
 
-prova = {
-    "date": "2000 aEV - 1900 aEV",
-    "colore": "orange",
-    "titolo": "Evento di prova",
-    "descrizione": "Utilizziamo i cookie per personalizzare contenuti ed annunci, per fornire funzionalità dei social media e per analizzare il nostro traffico. Condividiamo inoltre informazioni sul modo in cui utilizza il nostro sito con i nostri partner che si occupano di analisi dei dati web, pubblicità e social media, i quali potrebbero combinarle con altre informazioni che ha fornito loro o che hanno raccolto dal suo utilizzo dei loro servizi."
-}
+def csv_dict(file_path: str) -> dict:
+    """
+    Legge il file CSV e genera un dizionario con i dati della prima riga.
+    Colonne utilizzate:
+    - Prima colonna: inizio
+    - Quarta colonna: fine
+    - Settima colonna: titolo
+    - Nona colonna: descrizione
+    """
+    with open(file_path, mode='r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        next(reader)  # Salta l'intestazione
+        prima_riga = next(reader)  # Legge la prima riga di dati
+
+        # Crea il dizionario con i dati richiesti
+        dizionario = {
+            "inizio": int(prima_riga[0]) if prima_riga[0] else None,
+            "fine": int(prima_riga[3]) if prima_riga[3] else None,
+            "colore": "#ee0045",
+            "titolo": prima_riga[6],
+            "descrizione": prima_riga[8],
+        }
+        return dizionario
 
 def EV(a: int) -> str:
     if a < 0:
@@ -22,15 +40,32 @@ def draw() -> svg.SVG:
     return svg.SVG(
         width=mm(240),
         height=mm(165),
-        elements=card(prova),
+        elements=card(csv_dict("Linea Temporale - Cronologia.csv")),
     )
 
 def card(evento: dict) -> list:
-    date = evento["date"]
+    inizio = evento["inizio"]
+    fine = evento["fine"]
+    
     colore = evento["colore"]
     titolo = evento["titolo"]
     descrizione = evento["descrizione"]
     interlinea= 1  # Interlinea desiderata in pt
+
+    # Toglie il segno negativo se presente
+    if inizio<0:
+        inizio = abs(inizio)
+    if fine<0:
+        fine = abs(fine)
+    date = EV(inizio) + " - " + EV(fine) #scrive in stringa le date
+
+    # Grandezza intervallo da usare per larghezza di svg.Line
+    if inizio < 0 and fine > 0:
+        intervallo = fine + inizio -1 # Non esiste l'anno 0
+    else:
+        intervallo = fine - inizio
+    if intervallo < 0: # Con date negative abbiamo intervallo negativo, lo giriamo
+        intervallo = abs(intervallo)
 
     nlinee = len(descrizione) // 50 + 1  # Calcola il numero di linee in base alla lunghezza del testo
     #nlinee=descrizione.count("\n") + 1  # Conta il numero di linee nel testo
@@ -54,7 +89,7 @@ def card(evento: dict) -> list:
         # linea del tempo
         svg.Line(
             x1=mm(0), y1=mm(55),
-            x2=mm(100), y2=mm(55),
+            x2=mm(intervallo), y2=mm(55),
             stroke=colore,
             stroke_width=mm(15),
         ),
