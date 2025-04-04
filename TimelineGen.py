@@ -1,29 +1,25 @@
 import svg
 import csv
 
+interlinea= 1  # Interlinea desiderata in pt
+
 def csv_dict(file_path: str) -> dict:
-    """
-    Legge il file CSV e genera un dizionario con i dati della prima riga.
-    Colonne utilizzate:
-    - Prima colonna: inizio
-    - Quarta colonna: fine
-    - Settima colonna: titolo
-    - Nona colonna: descrizione
-    """
+
     with open(file_path, mode='r', encoding='utf-8') as file:
         reader = csv.reader(file)
         next(reader)  # Salta l'intestazione
-        prima_riga = next(reader)  # Legge la prima riga di dati
-
-        # Crea il dizionario con i dati richiesti
+        riga = next(reader)
+        nlinee = len(riga[8]) // 50
         dizionario = {
-            "inizio": int(prima_riga[0]) if prima_riga[0] else None,
-            "fine": int(prima_riga[3]) if prima_riga[3] else None,
+            "inizio": int(riga[0]) if riga[0] else None,
+            "fine": int(riga[3]) if riga[3] else None,
             "colore": "#ee0045",
-            "titolo": prima_riga[6],
-            "descrizione": prima_riga[8],
+            "titolo": riga[6],
+            "descrizione": riga[8],
+            "nlinee": nlinee,
+            "scartoy": 0,
         }
-        return dizionario
+    return dizionario
 
 annozero= 4500  # annozero dell'immagine SVG in mm assolutamente da cambiare
 def EV(a: int) -> str:
@@ -38,6 +34,7 @@ def pt(a: int) -> str:
 
 # Definizione della funzione principale per disegnare l'immagine SVG
 def draw() -> svg.SVG:
+    
     return svg.SVG(
         width=mm(7000),
         height=mm(3000),
@@ -51,7 +48,8 @@ def card(evento: dict) -> list:
     colore = evento["colore"]
     titolo = evento["titolo"]
     descrizione = evento["descrizione"]
-    interlinea= 1  # Interlinea desiderata in pt
+    nlinee = evento["nlinee"]
+    scartoy = evento["scartoy"]
     partenza = annozero+inizio
     #conclusione = annozero+fine
     # Toglie il segno negativo se presente
@@ -72,13 +70,10 @@ def card(evento: dict) -> list:
     
     date = EV(inizio) + " - " + EV(fine) #scrive in stringa le date
     
-
-    nlinee = len(descrizione) // 50  # Calcola il numero di linee in base alla lunghezza del testo
-    #nlinee=descrizione.count("\n") + 1  # Conta il numero di linee nel testo
     elements = [
         # date ex. 2000 aEV - 1900 aEV
         svg.Text(
-            x=mm(partenza), y=mm(11),
+            x=mm(partenza), y=mm(11+scartoy),
             text=date,
             font_size=pt(30),
             fill="black",
@@ -86,7 +81,7 @@ def card(evento: dict) -> list:
         ),
         # titolo ex. Distruzione di Gerusalemme
         svg.Text(
-            x=mm(partenza), y=mm(39),
+            x=mm(partenza), y=mm(39+scartoy),
             text=titolo,
             font_size=pt(80),
             fill=colore,
@@ -94,14 +89,14 @@ def card(evento: dict) -> list:
         ),
         # linea del tempo
         svg.Line(
-            x1=mm(partenza), y1=mm(55),
-            x2=mm(partenza+intervallo), y2=mm(55),
+            x1=mm(partenza), y1=mm(55+scartoy),
+            x2=mm(partenza+intervallo), y2=mm(55+scartoy),
             stroke=colore,
             stroke_width=mm(15),
         ),
         # rettangolo invisibile con id
         svg.Rect(
-            x=mm(partenza), y=mm(69),
+            x=mm(partenza), y=mm(69+scartoy),
             width=mm(240), height=mm((15 + interlinea) * nlinee),
             fill="none",
             stroke="none",
