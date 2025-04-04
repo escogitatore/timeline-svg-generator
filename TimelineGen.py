@@ -3,23 +3,37 @@ import csv
 
 interlinea= 1  # Interlinea desiderata in pt
 
-def csv_dict(file_path: str) -> dict:
-
+def generate_elements(file_path: str) -> list:
+    elements = []  # Lista per contenere tutti gli elementi SVG
     with open(file_path, mode='r', encoding='utf-8') as file:
         reader = csv.reader(file)
         next(reader)  # Salta l'intestazione
-        riga = next(reader)
-        nlinee = len(riga[8]) // 50
-        dizionario = {
-            "inizio": int(riga[0]) if riga[0] else None,
-            "fine": int(riga[3]) if riga[3] else None,
-            "colore": "#ee0045",
-            "titolo": riga[6],
-            "descrizione": riga[8],
-            "nlinee": nlinee,
-            "scartoy": 0,
-        }
-    return dizionario
+        """ for i, riga in enumerate(reader):
+            if i >= 10:  # Limita il ciclo a 10 passaggi
+                break """
+
+        for i, riga in enumerate(reader):  # Ciclo su tutte le righe del CSV
+            # Controlla che la riga abbia abbastanza colonne e dati validi
+            if len(riga) < 9 or not riga[0] or not riga[3]:
+                continue
+
+            # Crea il dizionario per la funzione card
+            nlinee = len(riga[8]) // 50 if riga[8] else 1
+            dizionario = {
+                "inizio": int(riga[0]) if riga[0] else None,
+                "fine": int(riga[3]) if riga[3] else None,
+                "colore": "#ee0045",  # Puoi personalizzare il colore
+                "titolo": riga[6],
+                "descrizione": riga[8] if len(riga) > 8 else "",
+                "nlinee": nlinee,
+                "scartoy": i*89+nlinee*(11+interlinea),  # Calcola lo scarto in base all'indice della riga
+                "indice": "#text-container-" + str(i),
+            }
+
+            # Chiama la funzione card e unisce i risultati
+            elements.extend(card(dizionario))
+
+    return elements
 
 annozero= 4500  # annozero dell'immagine SVG in mm assolutamente da cambiare
 def EV(a: int) -> str:
@@ -38,7 +52,7 @@ def draw() -> svg.SVG:
     return svg.SVG(
         width=mm(7000),
         height=mm(3000),
-        elements=card(csv_dict("Linea Temporale - Cronologia.csv")),
+        elements=generate_elements("Linea Temporale - Cronologia.csv"),
     )
 
 def card(evento: dict) -> list:
@@ -50,6 +64,7 @@ def card(evento: dict) -> list:
     descrizione = evento["descrizione"]
     nlinee = evento["nlinee"]
     scartoy = evento["scartoy"]
+    indice= evento["indice"]
     partenza = annozero+inizio
     #conclusione = annozero+fine
     # Toglie il segno negativo se presente
@@ -100,7 +115,7 @@ def card(evento: dict) -> list:
             width=mm(240), height=mm((15 + interlinea) * nlinee),
             fill="none",
             stroke="none",
-            id="text-container",  # Assegna un id al rettangolo
+            id=indice,  # Assegna un id al rettangolo
         ),
         # testo giustificato all'interno del rettangolo
         svg.Text(
@@ -108,7 +123,7 @@ def card(evento: dict) -> list:
             font_size=pt(30),
             fill="black",
             font_family="Arial",
-            style="text-align: justify; white-space: pre; shape-inside: url(#text-container); display: inline;",
+            style="text-align: justify; white-space: pre; shape-inside: url("+indice+"); display: inline;",
         ),
     ]
     return elements
