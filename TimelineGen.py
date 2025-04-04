@@ -25,6 +25,7 @@ def csv_dict(file_path: str) -> dict:
         }
         return dizionario
 
+annozero= 4500  # annozero dell'immagine SVG in mm assolutamente da cambiare
 def EV(a: int) -> str:
     if a < 0:
         return str(a) + " aEV"
@@ -38,8 +39,8 @@ def pt(a: int) -> str:
 # Definizione della funzione principale per disegnare l'immagine SVG
 def draw() -> svg.SVG:
     return svg.SVG(
-        width=mm(240),
-        height=mm(165),
+        width=mm(7000),
+        height=mm(3000),
         elements=card(csv_dict("Linea Temporale - Cronologia.csv")),
     )
 
@@ -51,13 +52,10 @@ def card(evento: dict) -> list:
     titolo = evento["titolo"]
     descrizione = evento["descrizione"]
     interlinea= 1  # Interlinea desiderata in pt
-
+    partenza = annozero+inizio
+    #conclusione = annozero+fine
     # Toglie il segno negativo se presente
-    if inizio<0:
-        inizio = abs(inizio)
-    if fine<0:
-        fine = abs(fine)
-    date = EV(inizio) + " - " + EV(fine) #scrive in stringa le date
+    
 
     # Grandezza intervallo da usare per larghezza di svg.Line
     if inizio < 0 and fine > 0:
@@ -66,13 +64,21 @@ def card(evento: dict) -> list:
         intervallo = fine - inizio
     if intervallo < 0: # Con date negative abbiamo intervallo negativo, lo giriamo
         intervallo = abs(intervallo)
+    
+    if inizio<0:
+        inizio = abs(inizio)
+    if fine<0:
+        fine = abs(fine)
+    
+    date = EV(inizio) + " - " + EV(fine) #scrive in stringa le date
+    
 
-    nlinee = len(descrizione) // 50 + 1  # Calcola il numero di linee in base alla lunghezza del testo
+    nlinee = len(descrizione) // 50  # Calcola il numero di linee in base alla lunghezza del testo
     #nlinee=descrizione.count("\n") + 1  # Conta il numero di linee nel testo
     elements = [
         # date ex. 2000 aEV - 1900 aEV
         svg.Text(
-            x=mm(0), y=mm(11),
+            x=mm(partenza), y=mm(11),
             text=date,
             font_size=pt(30),
             fill="black",
@@ -80,7 +86,7 @@ def card(evento: dict) -> list:
         ),
         # titolo ex. Distruzione di Gerusalemme
         svg.Text(
-            x=mm(0), y=mm(39),
+            x=mm(partenza), y=mm(39),
             text=titolo,
             font_size=pt(80),
             fill=colore,
@@ -88,14 +94,14 @@ def card(evento: dict) -> list:
         ),
         # linea del tempo
         svg.Line(
-            x1=mm(0), y1=mm(55),
-            x2=mm(intervallo), y2=mm(55),
+            x1=mm(partenza), y1=mm(55),
+            x2=mm(partenza+intervallo), y2=mm(55),
             stroke=colore,
             stroke_width=mm(15),
         ),
         # rettangolo invisibile con id
         svg.Rect(
-            x=mm(0), y=mm(69),
+            x=mm(partenza), y=mm(69),
             width=mm(240), height=mm((15 + interlinea) * nlinee),
             fill="none",
             stroke="none",
