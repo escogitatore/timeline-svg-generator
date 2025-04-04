@@ -54,7 +54,7 @@ def draw() -> svg.SVG:
             ),
             # rettangolo invisibile con id
             svg.Rect(
-                x=mm(0), y=mm(75),
+                x=mm(0), y=mm(69),
                 width=mm(240), height=mm((15+interlinea)*nlinee),
                 fill="none",
                 stroke="none",
@@ -74,4 +74,11 @@ def draw() -> svg.SVG:
 
 
 if __name__ == '__main__':
-    print(draw())
+    # Genera il contenuto SVG
+    svg_content = draw()
+    
+    # Scrive il contenuto SVG in un file
+    with open("output.svg", "w", encoding="utf-8") as file:
+        file.write(str(svg_content))
+    
+    print("File SVG generato: output.svg")
