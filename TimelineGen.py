@@ -1,6 +1,8 @@
 import svg
 import csv
 
+percorso = "Linea Temporale - cronologia.csv"
+
 interlinea= 1  # Interlinea desiderata in pt
 
 def generate_elements(file_path: str) -> list:
@@ -52,7 +54,7 @@ def draw() -> svg.SVG:
     return svg.SVG(
         width=mm(7000),
         height=mm(3000),
-        elements=generate_elements("Linea Temporale - Cronologia.csv"),
+        elements=generate_elements(percorso),
     )
 
 def card(evento: dict) -> list:
@@ -133,7 +135,7 @@ if __name__ == '__main__':
     svg_content = draw()
     
     # Scrive il contenuto SVG in un file
-    with open("output.svg", "w", encoding="utf-8") as file:
+    with open("output-civilta.svg", "w", encoding="utf-8") as file:
         file.write(str(svg_content))
     
-    print("File SVG generato: output.svg")
+    print("File SVG generato: output-civilta.svg")
