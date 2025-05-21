@@ -16,28 +16,6 @@ def mm(a: int) -> str:
 def pt(a: int) -> str:
     return str(a) + "pt"
 
-def split_text(text: str, max_chars: int = 50) -> list:
-    """Divide il testo in linee di lunghezza massima specificata."""
-    words = text.split()
-    lines = []
-    current_line = []
-    current_length = 0
-
-    for word in words:
-        word_length = len(word)
-        if current_length + word_length + 1 <= max_chars:
-            current_line.append(word)
-            current_length += word_length + 1
-        else:
-            lines.append(" ".join(current_line))
-            current_line = [word]
-            current_length = word_length + 1
-
-    if current_line:
-        lines.append(" ".join(current_line))
-
-    return lines
-
 def card(evento: dict) -> list:
     inizio = evento["inizio"]
     fine = evento["fine"]
@@ -67,9 +45,6 @@ def card(evento: dict) -> list:
     # Pulisci la descrizione da caratteri problematici
     descrizione = evento["descrizione"].replace('"', '&quot;').replace("'", '&apos;')
     
-    # Divide il testo in linee
-    linee = split_text(descrizione, 50)
-    
     elements = [
         # Date
         svg.Text(
@@ -97,26 +72,20 @@ def card(evento: dict) -> list:
         # Rettangolo contenitore
         svg.Rect(
             x=mm(partenza), y=mm(69+scartoy),
-            width=mm(240), height=mm((15 + interlinea) * len(linee)),
+            width=mm(240), height=mm((15 + interlinea) * nlinee),
             fill="none",
             stroke="red",
             id=f"text-container-{indice}",
         ),
+        # Testo con wrapping migliorato
+        svg.Text(
+            text=descrizione,
+            font_size=pt(30),
+            fill="black",
+            font_family="Arial",
+            style=f"text-align: justify; white-space: pre-wrap; word-wrap: break-word; shape-inside: url(#text-container-{indice}); display: inline;",
+        ),
     ]
-    
-    # Aggiungi ogni linea di testo separatamente
-    for i, linea in enumerate(linee):
-        elements.append(
-            svg.Text(
-                x=mm(partenza), 
-                y=mm(69 + scartoy + (i * (15 + interlinea))),
-                text=linea,
-                font_size=pt(30),
-                fill="black",
-                font_family="Arial",
-            )
-        )
-    
     return elements
 
 def generate_elements(file_path: str) -> list:
